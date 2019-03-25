@@ -295,7 +295,7 @@ if __name__ == '__main__':
     parser = MyParser(usage)
     parser.add_option("-d", "--delimiter", dest="delimiter", default=' ',
                       help="delimiter of input & output files [default: space]")
-    parser.add_option("-f", "--input network file", dest="network_file", default="../example/wiki/wiki-topcats.txt",
+    parser.add_option("-f", "--input network file", dest="network_file", default="wiki-topcats.txt",
                       help="input file of edge list for clustering [default: example_graphs/email/graph]")
     parser.add_option("-g", "--input community ground truth file", dest="groundtruth_community_file",
                       default="../example/email/ground_truth",
@@ -353,10 +353,12 @@ if __name__ == '__main__':
     F1_score = cal_f_score(detected_comm, new_test_comm)
     print "-----------------------------------------------------------------------"
     print "The F1 score between detected community and ground truth community is: ", F1_score
+    
+    read_cat("wiki-topcats-categories.txt", list(detected_comm_ori - 1))
 
     with open(output_file, "a") as out:
         out.write("# detected community:" + "\n")
-        out.write(str(list(detected_comm_ori + 1)))
+        out.write(str(list(detected_comm_ori - 1)))
         out.write('\n')
         out.write('\n')
         out.write("# F1 score: " + str(F1_score) + '\n')
