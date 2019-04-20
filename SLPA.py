@@ -105,7 +105,7 @@ class Graph():
     def print_communities(self, filename):
         file = open(filename, 'w')
         for key in self.community_list.keys():
-            file.write('%s\n' % sorted(self.community_list[key]))
+            file.write('(%s)\n' % str(sorted(self.community_list[key]))[1:-1])
         file.close()
         num_comms = len(self.community_list.keys())
         print '%s different communities identified and written to %s' % (num_comms, filename)
@@ -136,11 +136,12 @@ class SLPA():
     # num_iterations: numner of times to run the label propagation
     # threshold: float from 0 to 0.5 specifying a lower probability bound for 
     # accepting community membership
-    def __init__(self, filename, num_iterations, threshold):
+    def __init__(self, filename, num_iterations, threshold, outfile):
         self.graph = Graph()
         self.graph.import_edges(filename)
         self.num_iterations = num_iterations
         self.threshold = threshold
+        self.outfile = outfile
 
     # run the algorithm based on the parameters given to the object during 
     # initialization
@@ -152,9 +153,19 @@ class SLPA():
             sys.stdout.flush()
             random.shuffle(nodes)
             self.propagate(nodes)
+            for th in [0.3,0.4,0.5]:
+                self.post_process(th)
+                self.graph.print_communities(self.outfile + '_iter_' + str(i)+'_th_'+str(th))
+            print('iteration %d, comunity %d' % (i + 1, self.count()))
+
         print('] Label Propagation Complete')
-        self.post_process()      
-            
+        self.post_process(self.threshold)
+
+    def count(self):
+        com_count = set();
+        for key, node in self.graph.node_list.items():
+            com_count.update(node.memory.keys())
+        return len(com_count)
             
     # perform propagation of labels with each node serving as listener in a 
     # random order.
@@ -194,12 +205,13 @@ class SLPA():
     
     # Scrap all received labels with probability density less than threshold
     # Then pick out communities and save to community list
-    def post_process(self):
+    def post_process(self, threshold):
         for node in self.graph.node_list.values():
             for key in node.memory.keys():
                 probability = float(node.memory[key]) / float(node.memory_count)
-                if probability < self.threshold:
+                if probability < threshold:
                     node.memory.pop(key, None)
+        self.graph.community_list = dict()
         for node in self.graph.node_list.values():
             for key in node.memory.keys():
                 if not self.graph.community_list.has_key(key):
@@ -232,7 +244,7 @@ def main():
     num_iterations = int(sys.argv[3])
     threshold = float(sys.argv[4])
  
-    slpa = SLPA(in_file, num_iterations, threshold)
+    slpa = SLPA(in_file, num_iterations, threshold, out_file)
     slpa.run()
     slpa.graph.print_communities(out_file)
 
