@@ -105,7 +105,8 @@ class Graph():
     def print_communities(self, filename):
         file = open(filename, 'w')
         for key in self.community_list.keys():
-            file.write('(%s)\n' % str(sorted(self.community_list[key]))[1:-1])
+            if (len(self.community_list[key]) >= 3):
+                file.write('(%s)\n' % str(sorted(self.community_list[key]))[1:-1])
         file.close()
         num_comms = len(self.community_list.keys())
         print '%s different communities identified and written to %s' % (num_comms, filename)
